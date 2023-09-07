@@ -1,90 +1,61 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const localStorage = require('localStorage');
+const fs = require('fs');
+const app = express();
 const PORT = 3000;
 
-const app = express();
+app.use(bodyParser.urlencoded({ extended: false }));
 
-let data = [
-    {
-        "userName": "Kumar",
-        "message":"Hello Ravina"
-    },
-    {
-        "userName": "Ravina",
-        "message":"Hello Kumar"
-    },
-    {
-        "userName": "Kumar",
-        "message":"How are you!"
-    },
-    {
-        "userName": "Ravina",
-        "message":"I am fine, what about you"
-    },
-    {
-        "userName": "Kumar",
-        "message":"You better know, how am I without you"
-    },
-    {
-        "userName": "Ravina",
-        "message":"OH!... "
-    }
-]
+let chat;
 
-localStorage.setItem('chats', JSON.stringify(data));
-let chats = JSON.parse(localStorage.getItem('chats'));
-console.log(chats);
 
-app.use(bodyParser.urlencoded({extended:false}));
+app.get('/login', (req, res)=>{
+    res.send(`
+    <!DOCTYPE html>
+<html lang="en">
+<body>
+    <form action="/" method="get" onsubmit="localStorage.setItem('username', document.getElementById('username').value)">
+    <input type="text" id="username" name="username">
+    <input type="submit" value="Enter">
+    </form>
+</body>
+</html>
+    `)
+})
 
-app.get('/', (req,res)=>{
-    let user = JSON.parse(localStorage.getItem('user'))
-    console.log(user);
-    res.send(`<!DOCTYPE html>
-    <html>
+app.get('/', (req, res)=>{
+    fs.readFile('data.txt', (err, data)=>{
+        if(err){
+            chat = "No chats Availiable"
+            console.log(err)
+        }else{
+            chat = data;
+        }
+        res.send(`
+        <!DOCTYPE html>
+    <html lang="en">
     <body>
-        <div class="container">
-            <div class="chats" id="chats">
-            <div class="form">
-                <form action="/message" method="post">
-                    <label for="msg">Your Message</label>
-                    <input type="text" id="msg" name="message" >
-                    <input type="submit" value="Send">
-                </form>
-            </div>
-        </div>
-        </div>
+        ${chat}
+        <form action="/message" method="post" onsubmit="document.getElementById('username').value = localStorage.getItem('username')">
+        <input type="hidden" id="username" name="username">
+        <input type="text" id="message" name="message">
+        <input type="submit" value="Send">
+        </form>
     </body>
-    </html>`);
+    </html>
+        `)
+    })
 })
 
 app.post('/message', (req, res)=>{
-    let {message} = req.body;
-    let currentUser = JSON.parse(localStorage.getItem('user'));
-    console.log(currentUser, message);
-    res.redirect('/')
+let newMsg = req.body;
+console.log(newMsg);
+fs.writeFile('data.txt',`${newMsg.username}: ${newMsg.message} \n`, {flag: 'a'},(err)=>{
+err?console.log(err): res.redirect('/');   
 })
-
-app.get('/login', (req, res)=>{
-    res.send(`<!DOCTYPE html>
-    <html>
-    <body>
-        <form action="/user" method="post">
-            <input type="text" name="userName">
-            <input type="submit" name="" value="Login">
-        </form>
-    </body>
-    </html>`)
-})
-
-app.post('/user', (req, res)=>{
-    let userName = req.body.userName;
-    localStorage.setItem(JSON.stringify('user', userName))
-    res.redirect('/')
 })
 
 
 app.listen(PORT, ()=>{
-    console.log(`Server is running on port ${PORT}`)
+    console.log(`Server is running on port ${PORT}.`)
 })
