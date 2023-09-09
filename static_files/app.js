@@ -1,26 +1,19 @@
 const express = require('express');
 const path = require('path');
-const rootDir = require('./utils/path')
+const rootDir = require('./utils/path');
+const controller = require('./controllers/controller');
 const app = express();
 const PORT = 3000;
 
 app.use(express.static(path.join(rootDir, 'public')))
 
-app.get('/', (req, res)=>{
-    res.sendFile(path.join(rootDir, 'views', 'home.html'))
-})
+app.get('/', controller.home)
 
-app.get('/contactus', (req, res)=>{
-    res.sendFile(path.join(rootDir, 'views', 'contact.html'))
-})
+app.get('/contactus', controller.contactus)
 
-app.post('/success', (req, res)=>{
-    res.sendFile(path.join(rootDir, 'views', 'success.html'))
-})
+app.post('/success', controller.success)
 
-app.use((req, res)=>{
-    res.sendFile(path.join(rootDir, 'views', 'error.html'))
-})
+app.use(controller.error)
 
 app.listen(PORT, ()=>{
     console.log(`Server is running on port ${PORT}.`)
